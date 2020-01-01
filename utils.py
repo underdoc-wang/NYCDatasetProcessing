@@ -11,6 +11,15 @@ def get_t(day, hour, minute, n=4):
     Day is 1-indexed, hour and minute is 0 indexed.'''
     return floor( ((((day-1)*24 + hour)*60) + minute)/floor((60/n)) )
 
+'''
+    #col of OD info
+                st      et      slon    slat    elon    elat    pcount  distance
+    example     5       6       10      11      12      13      7       9
+    green       1       2       5       6       7       8       9       10
+    yellow      1       2       5       6       9       10      3       4
+
+'''
+
 def process_entry(line, n=4):
     ''' Given string line from the .csv,
         return a dict representing that entry. '''
