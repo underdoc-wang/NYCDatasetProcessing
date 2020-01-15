@@ -14,7 +14,8 @@ def get_next(year, month):
     else:
         return (year, month + 1)
 
-def process( startyear  = 2010,
+def process( color,
+             startyear  = 2010,
              startmonth = 1,
              endyear    = 2013,
              endmonth   = 12,
@@ -59,8 +60,8 @@ def process( startyear  = 2010,
         next_year, next_month = get_next(year=year, month=month)
         vdata_next_mo = utils.gen_empty_vdata(year=next_year, month=next_month, w=width, h=height, n=n)
         fdata_next_mo = utils.gen_empty_fdata(year=next_year, month=next_month, w=width, h=height, n=n)
-        
-        load_filename = "../decompressed/FOIL"+str(year)+"/trip_data_"+str(month)+".csv"
+
+        load_filename = f"./mobility15/{color}/{color}_tripdata_{year}-{str(month).zfill(2)}.csv"
         #load_filename = "example.csv"
         
         if V:
@@ -98,13 +99,13 @@ def process( startyear  = 2010,
             if V:
                 print("Not saving for", year, month, "due to restart flag.")
         else:
-            # Save the file
-            save_filename_date = str(year)+"-"+str(month).zfill(2)
+            # Save file
+            save_filename_name = color + str(year)+"-"+str(month).zfill(2)
             
             if V:
-                print("Saving",save_filename_date)
+                print("Saving",save_filename_name)
                 print_time()
-            np.savez_compressed(save_filename_date + "-data.npz", vdata = vdata, fdata = fdata, trips = trips, errors = np.array([invalid_count, unparsable_count]))
+            np.savez_compressed(f"./mobility15/{int(1/n)}h/{save_filename_name}-data.npz", vdata = vdata, fdata = fdata, trips = trips, errors = np.array([invalid_count, unparsable_count]))
         
     if V:
         print("All finished!")
@@ -113,6 +114,12 @@ def process( startyear  = 2010,
 if __name__ == '__main__':
     # Parse arguments
     parser = argparse.ArgumentParser(description="NYC Dataset processing")
+    # TLC taxi green / yellow
+    # change column mapping in utils correspondingly
+    parser.add_argument('--taxi_color', '-color',
+                        help='Specify which color of taxi to process',
+                        type=str, choices=['green', 'yellow'], default='green')
+
     parser.add_argument("--startyear", "-sy",
                         help="Year to start processing from. Default 2010",
                         type=int, nargs=1)
@@ -134,23 +141,23 @@ if __name__ == '__main__':
     parser.add_argument("--nslotsperhour", "-n",
                         help="Discretize time into n slots per hour. Must be integer divisor of 60. (Default 4)",
                         type=int, nargs=1)
-    parser.add_argument("--verbose", "-v",
+    parser.add_argument("--verbose", "-v", default=True,
                         help="",
                         action="store_true")
-    parser.add_argument("--restart", "-r",
+    parser.add_argument("--restart", "-r", default=False,
                         help="Does not save the first month of data. Used to restart code when it crashes. (E.g. 2010 08 can have trips starting in 2010 07 that end in 2010 08)",
                         action="store_true")
 
     args = parser.parse_args()
     
     # Defaults 
-    startyear   = 2010  if args.startyear   is None else args.startyear[0]
+    startyear   = 2015  if args.startyear   is None else args.startyear[0]
     startmonth  = 1     if args.startmonth  is None else args.startmonth[0]
-    endyear     = 2013  if args.endyear     is None else args.endyear[0]
+    endyear     = 2015  if args.endyear     is None else args.endyear[0]
     endmonth    = 12    if args.endmonth    is None else args.endmonth[0]
-    width       = 10    if args.width       is None else args.width[0]
-    height      = 20    if args.height      is None else args.height[0]
-    n           = 4     if args.nslotsperhour is None else args.nslotsperhour[0]
+    width       = 20    if args.width       is None else args.width[0]
+    height      = 10    if args.height      is None else args.height[0]
+    n           = 1/12     if args.nslotsperhour is None else args.nslotsperhour[0]
     V = args.verbose
     restart = args.restart
     
@@ -161,11 +168,13 @@ if __name__ == '__main__':
         print("Running with arguments:")
         print("  Verbose")
         print("  ",startyear, ", ", startmonth, " to ", endyear, ", ", endmonth, ".",sep="")
-        print("  With",n,"samples year hour.")
+        print("  Taxi color type:",args.taxi_color)
+        print("  With",int(1/n),"hour interval.")
         print("  On a grid of size ",width,"x",height,".", sep="")
     
     # Begin processing data
-    process( startyear  = startyear,
+    process( color      = args.taxi_color,
+             startyear  = startyear,
              startmonth = startmonth,
              endyear    = endyear,
              endmonth   = endmonth,

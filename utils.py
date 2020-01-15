@@ -27,8 +27,8 @@ def process_entry(line, n=4):
     regex_format = r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}'
     
     # Extract the string out from scruff that might be around it
-    start_time_string = re.search(regex_format, entry_strings[5]).group()
-    end_time_string = re.search(regex_format, entry_strings[6]).group()
+    start_time_string = re.search(regex_format, entry_strings[1]).group()
+    end_time_string = re.search(regex_format, entry_strings[2]).group()
     
     # Parse the times using datetime
     time_format = "%Y-%m-%d %H:%M:%S"
@@ -36,10 +36,10 @@ def process_entry(line, n=4):
     end_time = datetime.strptime(end_time_string, time_format)
     
     # Starting and ending GPS coordinates
-    slon = float(entry_strings[10].strip())
-    slat = float(entry_strings[11].strip())
-    elon = float(entry_strings[12].strip())
-    elat = float(entry_strings[13].strip())
+    slon = float(entry_strings[5].strip())
+    slat = float(entry_strings[6].strip())
+    elon = float(entry_strings[7].strip())
+    elat = float(entry_strings[8].strip())
     
     # Starting and ending grid coordinates and straight-line (l2) distance
     # Warning: Uses prebaked Manhattan values.
@@ -72,7 +72,7 @@ def process_entry(line, n=4):
         'ex' : ex,
         'ey' : ey,
         'l2distance' : l2distance,
-        'distance'   : float(entry_strings[9].strip()),
+        'distance'   : float(entry_strings[10].strip()),
         'st' : st,
         'et' : et,
         'syear'  : start_time.year,
@@ -87,7 +87,7 @@ def process_entry(line, n=4):
         'ehour'  : end_time.hour,
         'emin'   : end_time.minute,
         'esec'   : end_time.second,
-        'pcount' : int(entry_strings[7].strip()), #Passenger count
+        'pcount' : int(entry_strings[9].strip()), #Passenger count
         'deltat' : deltat
     }
     
@@ -150,13 +150,13 @@ def gen_empty_vdata(year, month, w=10, h=20, n=4):
     ''' Return an all-zero 'vdata' numpy array.
     Used to store volume data, as per the STDN.'''
     samples = no_samples_in_mo(year=year, month=month, n=n)
-    return np.zeros((samples, w, h, 2, 2), dtype=np.int16)
+    return np.zeros((int(samples), w, h, 2, 2), dtype=np.int16)
 
 def gen_empty_fdata(year, month, w=10, h=20, n=4):
     ''' Return an all-zero 'fdata' numpy array.
     Used to store flow data, as per the STDN.'''
     samples = no_samples_in_mo(year=year, month=month, n=n)
-    return np.zeros((2, samples, w, h, w, h, 2), dtype=np.int16)
+    return np.zeros((2, int(samples), w, h, w, h, 2), dtype=np.int16)
 
 def update_data(entry, vdata, fdata, vdata_next_mo, fdata_next_mo, trips, w=10, h=20, n=4):
     ''' Updates the given numpy arrays with data from the provided entry.
